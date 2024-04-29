@@ -17,7 +17,7 @@ use boltz_client::{
         },
         liquid::{LBtcSwapScript, LBtcSwapTx},
     },
-    util::secrets::{LBtcReverseRecovery, LiquidSwapKey, Preimage, SwapKey},
+    util::secrets::{LiquidSwapKey, Preimage, SwapKey},
     Bolt11Invoice, Keypair,
 };
 use log::{debug, error, warn};

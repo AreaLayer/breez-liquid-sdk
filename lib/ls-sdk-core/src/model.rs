@@ -6,6 +6,8 @@ use serde::Serialize;
 
 use crate::get_invoice_amount;
 
+use super::error::LsSdkError;
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Network {
     Liquid,
