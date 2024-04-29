@@ -2,14 +2,9 @@ use std::sync::Arc;
 
 use anyhow::{Error, Result};
 use ls_sdk::{
-<<<<<<< HEAD
     error::PaymentError,
     model::{
         Network, PrepareReceiveRequest, PrepareReceiveResponse, PrepareSendResponse,
-=======
-    model::{
-        Network, PaymentError, PrepareReceiveRequest, PrepareReceiveResponse, PrepareSendResponse,
->>>>>>> 8eb0da0 (Add flutter_rust_bridge crate and make necessary changes on file structure)
         ReceivePaymentResponse, SendPaymentResponse, WalletInfo,
     },
     wallet::Wallet,
