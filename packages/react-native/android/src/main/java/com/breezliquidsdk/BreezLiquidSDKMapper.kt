@@ -38,7 +38,8 @@ fun asConfig(config: ReadableMap): Config? {
             config,
             arrayOf(
                 "boltzUrl",
-                "electrumUrl",
+                "liquidElectrumUrl",
+                "bitcoinElectrumUrl",
                 "workingDir",
                 "network",
                 "paymentTimeoutSec",
@@ -48,13 +49,15 @@ fun asConfig(config: ReadableMap): Config? {
         return null
     }
     val boltzUrl = config.getString("boltzUrl")!!
-    val electrumUrl = config.getString("electrumUrl")!!
+    val liquidElectrumUrl = config.getString("liquidElectrumUrl")!!
+    val bitcoinElectrumUrl = config.getString("bitcoinElectrumUrl")!!
     val workingDir = config.getString("workingDir")!!
     val network = config.getString("network")?.let { asNetwork(it) }!!
     val paymentTimeoutSec = config.getDouble("paymentTimeoutSec").toULong()
     return Config(
         boltzUrl,
-        electrumUrl,
+        liquidElectrumUrl,
+        bitcoinElectrumUrl,
         workingDir,
         network,
         paymentTimeoutSec,
@@ -64,7 +67,8 @@ fun asConfig(config: ReadableMap): Config? {
 fun readableMapOf(config: Config): ReadableMap =
     readableMapOf(
         "boltzUrl" to config.boltzUrl,
-        "electrumUrl" to config.electrumUrl,
+        "liquidElectrumUrl" to config.liquidElectrumUrl,
+        "bitcoinElectrumUrl" to config.bitcoinElectrumUrl,
         "workingDir" to config.workingDir,
         "network" to config.network.name.lowercase(),
         "paymentTimeoutSec" to config.paymentTimeoutSec,

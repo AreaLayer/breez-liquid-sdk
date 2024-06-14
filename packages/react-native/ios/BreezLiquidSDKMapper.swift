@@ -42,8 +42,11 @@ enum BreezLiquidSDKMapper {
         guard let boltzUrl = config["boltzUrl"] as? String else {
             throw LiquidSdkError.Generic(message: errMissingMandatoryField(fieldName: "boltzUrl", typeName: "Config"))
         }
-        guard let electrumUrl = config["electrumUrl"] as? String else {
-            throw LiquidSdkError.Generic(message: errMissingMandatoryField(fieldName: "electrumUrl", typeName: "Config"))
+        guard let liquidElectrumUrl = config["liquidElectrumUrl"] as? String else {
+            throw LiquidSdkError.Generic(message: errMissingMandatoryField(fieldName: "liquidElectrumUrl", typeName: "Config"))
+        }
+        guard let bitcoinElectrumUrl = config["bitcoinElectrumUrl"] as? String else {
+            throw LiquidSdkError.Generic(message: errMissingMandatoryField(fieldName: "bitcoinElectrumUrl", typeName: "Config"))
         }
         guard let workingDir = config["workingDir"] as? String else {
             throw LiquidSdkError.Generic(message: errMissingMandatoryField(fieldName: "workingDir", typeName: "Config"))
@@ -59,7 +62,8 @@ enum BreezLiquidSDKMapper {
 
         return Config(
             boltzUrl: boltzUrl,
-            electrumUrl: electrumUrl,
+            liquidElectrumUrl: liquidElectrumUrl,
+            bitcoinElectrumUrl: bitcoinElectrumUrl,
             workingDir: workingDir,
             network: network,
             paymentTimeoutSec: paymentTimeoutSec
@@ -69,7 +73,8 @@ enum BreezLiquidSDKMapper {
     static func dictionaryOf(config: Config) -> [String: Any?] {
         return [
             "boltzUrl": config.boltzUrl,
-            "electrumUrl": config.electrumUrl,
+            "liquidElectrumUrl": config.liquidElectrumUrl,
+            "bitcoinElectrumUrl": config.bitcoinElectrumUrl,
             "workingDir": config.workingDir,
             "network": valueOf(network: config.network),
             "paymentTimeoutSec": config.paymentTimeoutSec,

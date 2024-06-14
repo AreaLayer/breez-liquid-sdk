@@ -1,18 +1,19 @@
 use std::{str::FromStr, sync::Arc};
 
 use anyhow::{anyhow, Result};
+use boltz_client::swaps::boltzv2;
 use boltz_client::swaps::{boltz::SubSwapStates, boltzv2::CreateSubmarineResponse};
 use boltz_client::util::secrets::Preimage;
-use boltz_client::{Amount, Bolt11Invoice, ToHex};
+use boltz_client::{Bolt11Invoice, ToHex};
 use log::{debug, error, info, warn};
 use lwk_wollet::bitcoin::Witness;
 use lwk_wollet::elements::Transaction;
 use lwk_wollet::hashes::{sha256, Hash};
 use tokio::sync::broadcast;
 
+use crate::chain::ChainService;
 use crate::model::PaymentState::{Complete, Created, Failed, Pending, TimedOut};
 use crate::model::{Config, SendSwap};
-use crate::sdk::ChainService;
 use crate::swapper::Swapper;
 use crate::wallet::OnchainWallet;
 use crate::{ensure_sdk, get_invoice_amount};
@@ -55,7 +56,9 @@ impl SendSwapStateHandler {
     }
 
     /// Handles status updates from Boltz for Send swaps
-    pub(crate) async fn on_new_status(&self, swap_state: &str, id: &str) -> Result<()> {
+    pub(crate) async fn on_new_status(&self, update: &boltzv2::Update) -> Result<()> {
+        let id = &update.id;
+        let swap_state = &update.status;
         let swap = self
             .persister
             .fetch_send_swap_by_id(id)?
@@ -243,7 +246,7 @@ impl SendSwapStateHandler {
             &send_swap.id
         );
         let output_address = self.onchain_wallet.next_unused_address().await?.to_string();
-        let claim_tx_details = self.swapper.get_claim_tx_details(send_swap)?;
+        let claim_tx_details = self.swapper.get_send_claim_tx_details(send_swap)?;
         self.update_swap_info(
             &send_swap.id,
             Complete,
@@ -346,16 +349,15 @@ impl SendSwapStateHandler {
             .all_fees()
             .values()
             .sum();
-        let broadcast_fees_sat = Amount::from_sat(fee);
 
-        let refund_res =
-            self.swapper
-                .refund_send_swap_cooperative(swap, &output_address, broadcast_fees_sat);
+        let refund_res = self
+            .swapper
+            .refund_send_swap_cooperative(swap, &output_address, fee);
         match refund_res {
             Ok(res) => Ok(res),
             Err(e) => {
                 warn!("Cooperative refund failed: {:?}", e);
-                self.refund_non_cooperative(swap, broadcast_fees_sat).await
+                self.refund_non_cooperative(swap, fee).await
             }
         }
     }
@@ -363,7 +365,7 @@ impl SendSwapStateHandler {
     async fn refund_non_cooperative(
         &self,
         swap: &SendSwap,
-        broadcast_fees_sat: Amount,
+        broadcast_fees_sat: u64,
     ) -> Result<String, PaymentError> {
         info!(
             "Initiating non-cooperative refund for Send Swap {}",

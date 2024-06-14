@@ -31,7 +31,8 @@ class BackupRequest {
 /// Configuration for the Liquid SDK
 class Config {
   final String boltzUrl;
-  final String electrumUrl;
+  final String liquidElectrumUrl;
+  final String bitcoinElectrumUrl;
 
   /// Directory in which all SDK files (DB, log, cache) are stored.
   ///
@@ -44,7 +45,8 @@ class Config {
 
   const Config({
     required this.boltzUrl,
-    required this.electrumUrl,
+    required this.liquidElectrumUrl,
+    required this.bitcoinElectrumUrl,
     required this.workingDir,
     required this.network,
     required this.paymentTimeoutSec,
@@ -53,7 +55,8 @@ class Config {
   @override
   int get hashCode =>
       boltzUrl.hashCode ^
-      electrumUrl.hashCode ^
+      liquidElectrumUrl.hashCode ^
+      bitcoinElectrumUrl.hashCode ^
       workingDir.hashCode ^
       network.hashCode ^
       paymentTimeoutSec.hashCode;
@@ -64,7 +67,8 @@ class Config {
       other is Config &&
           runtimeType == other.runtimeType &&
           boltzUrl == other.boltzUrl &&
-          electrumUrl == other.electrumUrl &&
+          liquidElectrumUrl == other.liquidElectrumUrl &&
+          bitcoinElectrumUrl == other.bitcoinElectrumUrl &&
           workingDir == other.workingDir &&
           network == other.network &&
           paymentTimeoutSec == other.paymentTimeoutSec;
@@ -450,6 +454,51 @@ class PrepareReceiveResponse {
       other is PrepareReceiveResponse &&
           runtimeType == other.runtimeType &&
           payerAmountSat == other.payerAmountSat &&
+          feesSat == other.feesSat;
+}
+
+class PrepareSendOnchainRequest {
+  final String address;
+  final BigInt amountSat;
+
+  const PrepareSendOnchainRequest({
+    required this.address,
+    required this.amountSat,
+  });
+
+  @override
+  int get hashCode => address.hashCode ^ amountSat.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PrepareSendOnchainRequest &&
+          runtimeType == other.runtimeType &&
+          address == other.address &&
+          amountSat == other.amountSat;
+}
+
+class PrepareSendOnchainResponse {
+  final String address;
+  final BigInt amountSat;
+  final BigInt feesSat;
+
+  const PrepareSendOnchainResponse({
+    required this.address,
+    required this.amountSat,
+    required this.feesSat,
+  });
+
+  @override
+  int get hashCode => address.hashCode ^ amountSat.hashCode ^ feesSat.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PrepareSendOnchainResponse &&
+          runtimeType == other.runtimeType &&
+          address == other.address &&
+          amountSat == other.amountSat &&
           feesSat == other.feesSat;
 }
 

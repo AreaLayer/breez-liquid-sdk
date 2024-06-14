@@ -34,7 +34,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueNom,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.0.0-dev.36";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1028270774;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 2023714508;
 
 // Section: executor
 
@@ -232,6 +232,28 @@ let decode_indices_ = flutter_rust_bridge::for_generated::rust_auto_opaque_decod
                     })().await)
                 } })
 }
+fn wire__crate__bindings__BindingLiquidSdk_prepare_send_onchain_payment_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    that: impl CstDecode<
+        RustOpaqueNom<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<BindingLiquidSdk>>,
+    >,
+    req: impl CstDecode<crate::model::PrepareSendOnchainRequest>,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::DcoCodec,_,_,_>(flutter_rust_bridge::for_generated::TaskInfo{ debug_name: "BindingLiquidSdk_prepare_send_onchain_payment", port: Some(port_), mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal }, move || { let api_that = that.cst_decode();let api_req = req.cst_decode(); move |context| async move {
+                    transform_result_dco((move || async move {
+                        let mut api_that_decoded = None;
+let decode_indices_ = flutter_rust_bridge::for_generated::rust_auto_opaque_decode_compute_order(vec![flutter_rust_bridge::for_generated::rust_auto_opaque_lock_order_info(&api_that, 0, false)]);
+        for i in decode_indices_ {
+            match i {
+                0 => api_that_decoded = Some(flutter_rust_bridge::for_generated::rust_auto_opaque_decode_async_ref(&api_that).await),
+                _ => unreachable!(),
+            }
+        }
+        let api_that = api_that_decoded.unwrap();
+ crate::bindings::BindingLiquidSdk::prepare_send_onchain_payment(&api_that, api_req).await
+                    })().await)
+                } })
+}
 fn wire__crate__bindings__BindingLiquidSdk_prepare_send_payment_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     that: impl CstDecode<
@@ -316,6 +338,28 @@ fn wire__crate__bindings__BindingLiquidSdk_restore_impl(
             })())
         },
     )
+}
+fn wire__crate__bindings__BindingLiquidSdk_send_onchain_payment_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    that: impl CstDecode<
+        RustOpaqueNom<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<BindingLiquidSdk>>,
+    >,
+    req: impl CstDecode<crate::model::PrepareSendOnchainResponse>,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::DcoCodec,_,_,_>(flutter_rust_bridge::for_generated::TaskInfo{ debug_name: "BindingLiquidSdk_send_onchain_payment", port: Some(port_), mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal }, move || { let api_that = that.cst_decode();let api_req = req.cst_decode(); move |context| async move {
+                    transform_result_dco((move || async move {
+                        let mut api_that_decoded = None;
+let decode_indices_ = flutter_rust_bridge::for_generated::rust_auto_opaque_decode_compute_order(vec![flutter_rust_bridge::for_generated::rust_auto_opaque_lock_order_info(&api_that, 0, false)]);
+        for i in decode_indices_ {
+            match i {
+                0 => api_that_decoded = Some(flutter_rust_bridge::for_generated::rust_auto_opaque_decode_async_ref(&api_that).await),
+                _ => unreachable!(),
+            }
+        }
+        let api_that = api_that_decoded.unwrap();
+ crate::bindings::BindingLiquidSdk::send_onchain_payment(&api_that, api_req).await
+                    })().await)
+                } })
 }
 fn wire__crate__bindings__BindingLiquidSdk_send_payment_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
@@ -571,13 +615,15 @@ impl SseDecode for crate::model::Config {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_boltzUrl = <String>::sse_decode(deserializer);
-        let mut var_electrumUrl = <String>::sse_decode(deserializer);
+        let mut var_liquidElectrumUrl = <String>::sse_decode(deserializer);
+        let mut var_bitcoinElectrumUrl = <String>::sse_decode(deserializer);
         let mut var_workingDir = <String>::sse_decode(deserializer);
         let mut var_network = <crate::model::Network>::sse_decode(deserializer);
         let mut var_paymentTimeoutSec = <u64>::sse_decode(deserializer);
         return crate::model::Config {
             boltz_url: var_boltzUrl,
-            electrum_url: var_electrumUrl,
+            liquid_electrum_url: var_liquidElectrumUrl,
+            bitcoin_electrum_url: var_bitcoinElectrumUrl,
             working_dir: var_workingDir,
             network: var_network,
             payment_timeout_sec: var_paymentTimeoutSec,
@@ -644,6 +690,10 @@ impl SseDecode for crate::error::LiquidSdkError {
             }
             2 => {
                 return crate::error::LiquidSdkError::NotStarted;
+            }
+            3 => {
+                let mut var_err = <String>::sse_decode(deserializer);
+                return crate::error::LiquidSdkError::ServiceConnectivity { err: var_err };
             }
             _ => {
                 unimplemented!("");
@@ -983,6 +1033,32 @@ impl SseDecode for crate::model::PrepareReceiveResponse {
     }
 }
 
+impl SseDecode for crate::model::PrepareSendOnchainRequest {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_address = <String>::sse_decode(deserializer);
+        let mut var_amountSat = <u64>::sse_decode(deserializer);
+        return crate::model::PrepareSendOnchainRequest {
+            address: var_address,
+            amount_sat: var_amountSat,
+        };
+    }
+}
+
+impl SseDecode for crate::model::PrepareSendOnchainResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_address = <String>::sse_decode(deserializer);
+        let mut var_amountSat = <u64>::sse_decode(deserializer);
+        let mut var_feesSat = <u64>::sse_decode(deserializer);
+        return crate::model::PrepareSendOnchainResponse {
+            address: var_address,
+            amount_sat: var_amountSat,
+            fees_sat: var_feesSat,
+        };
+    }
+}
+
 impl SseDecode for crate::model::PrepareSendRequest {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1161,7 +1237,8 @@ impl flutter_rust_bridge::IntoDart for crate::model::Config {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.boltz_url.into_into_dart().into_dart(),
-            self.electrum_url.into_into_dart().into_dart(),
+            self.liquid_electrum_url.into_into_dart().into_dart(),
+            self.bitcoin_electrum_url.into_into_dart().into_dart(),
             self.working_dir.into_into_dart().into_dart(),
             self.network.into_into_dart().into_dart(),
             self.payment_timeout_sec.into_into_dart().into_dart(),
@@ -1236,6 +1313,9 @@ impl flutter_rust_bridge::IntoDart for crate::error::LiquidSdkError {
                 [1.into_dart(), err.into_into_dart().into_dart()].into_dart()
             }
             crate::error::LiquidSdkError::NotStarted => [2.into_dart()].into_dart(),
+            crate::error::LiquidSdkError::ServiceConnectivity { err } => {
+                [3.into_dart(), err.into_into_dart().into_dart()].into_dart()
+            }
         }
     }
 }
@@ -1484,6 +1564,49 @@ impl flutter_rust_bridge::IntoIntoDart<crate::model::PrepareReceiveResponse>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::model::PrepareSendOnchainRequest {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.address.into_into_dart().into_dart(),
+            self.amount_sat.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::model::PrepareSendOnchainRequest
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::model::PrepareSendOnchainRequest>
+    for crate::model::PrepareSendOnchainRequest
+{
+    fn into_into_dart(self) -> crate::model::PrepareSendOnchainRequest {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::model::PrepareSendOnchainResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.address.into_into_dart().into_dart(),
+            self.amount_sat.into_into_dart().into_dart(),
+            self.fees_sat.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::model::PrepareSendOnchainResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::model::PrepareSendOnchainResponse>
+    for crate::model::PrepareSendOnchainResponse
+{
+    fn into_into_dart(self) -> crate::model::PrepareSendOnchainResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::model::PrepareSendRequest {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [self.invoice.into_into_dart().into_dart()].into_dart()
@@ -1677,7 +1800,8 @@ impl SseEncode for crate::model::Config {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.boltz_url, serializer);
-        <String>::sse_encode(self.electrum_url, serializer);
+        <String>::sse_encode(self.liquid_electrum_url, serializer);
+        <String>::sse_encode(self.bitcoin_electrum_url, serializer);
         <String>::sse_encode(self.working_dir, serializer);
         <crate::model::Network>::sse_encode(self.network, serializer);
         <u64>::sse_encode(self.payment_timeout_sec, serializer);
@@ -1729,6 +1853,10 @@ impl SseEncode for crate::error::LiquidSdkError {
             }
             crate::error::LiquidSdkError::NotStarted => {
                 <i32>::sse_encode(2, serializer);
+            }
+            crate::error::LiquidSdkError::ServiceConnectivity { err } => {
+                <i32>::sse_encode(3, serializer);
+                <String>::sse_encode(err, serializer);
             }
         }
     }
@@ -2003,6 +2131,23 @@ impl SseEncode for crate::model::PrepareReceiveResponse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <u64>::sse_encode(self.payer_amount_sat, serializer);
+        <u64>::sse_encode(self.fees_sat, serializer);
+    }
+}
+
+impl SseEncode for crate::model::PrepareSendOnchainRequest {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.address, serializer);
+        <u64>::sse_encode(self.amount_sat, serializer);
+    }
+}
+
+impl SseEncode for crate::model::PrepareSendOnchainResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.address, serializer);
+        <u64>::sse_encode(self.amount_sat, serializer);
         <u64>::sse_encode(self.fees_sat, serializer);
     }
 }

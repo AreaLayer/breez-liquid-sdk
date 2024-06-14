@@ -25,7 +25,8 @@ export interface BackupRequest {
 
 export interface Config {
     boltzUrl: string
-    electrumUrl: string
+    liquidElectrumUrl: string
+    bitcoinElectrumUrl: string
     workingDir: string
     network: Network
     paymentTimeoutSec: number

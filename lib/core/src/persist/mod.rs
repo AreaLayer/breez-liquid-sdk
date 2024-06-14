@@ -1,11 +1,12 @@
 mod backup;
+pub(crate) mod chain;
 mod migrations;
 pub(crate) mod receive;
 pub(crate) mod send;
 
 use std::{collections::HashMap, fs::create_dir_all, path::PathBuf, str::FromStr};
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use migrations::current_migrations;
 use rusqlite::{params, Connection, OptionalExtension, Row};
 use rusqlite_migration::{Migrations, M};
@@ -50,6 +51,19 @@ impl Persister {
         Ok(())
     }
 
+    pub(crate) fn fetch_swap_by_id(&self, id: &str) -> Result<Swap> {
+        match self.fetch_send_swap_by_id(id) {
+            Ok(Some(send_swap)) => Ok(Swap::Send(send_swap)),
+            _ => match self.fetch_receive_swap(id) {
+                Ok(Some(receive_swap)) => Ok(Swap::Receive(receive_swap)),
+                _ => match self.fetch_chain_swap_by_id(id) {
+                    Ok(Some(chain_swap)) => Ok(Swap::Chain(chain_swap)),
+                    _ => Err(anyhow!("Could not find Swap {id}")),
+                },
+            },
+        }
+    }
+
     pub(crate) fn insert_or_update_payment(&self, ptx: PaymentTxData) -> Result<()> {
         let mut con = self.get_connection()?;
 
@@ -91,7 +105,17 @@ impl Persister {
             .into_iter()
             .map(Swap::Receive)
             .collect();
-        Ok([ongoing_send_swaps, ongoing_receive_swaps].concat())
+        let ongoing_chain_swaps: Vec<Swap> = self
+            .list_ongoing_chain_swaps(&con)?
+            .into_iter()
+            .map(Swap::Chain)
+            .collect();
+        Ok([
+            ongoing_send_swaps,
+            ongoing_receive_swaps,
+            ongoing_chain_swaps,
+        ]
+        .concat())
     }
 
     fn select_payment_query(&self, where_clause: Option<&str>) -> String {
@@ -116,14 +140,23 @@ impl Persister {
                 ss.payer_amount_sat,
                 ss.receiver_amount_sat,
                 ss.state,
+                cs.id,
+                cs.created_at,
+                cs.preimage,
+                cs.refund_tx_id,
+                cs.payer_amount_sat,
+                cs.receiver_amount_sat,
+                cs.state,
                 rtx.amount_sat
             FROM payment_tx_data AS ptx          -- Payment tx (each tx results in a Payment)
             LEFT JOIN receive_swaps AS rs        -- Receive Swap data
                 ON ptx.tx_id = rs.claim_tx_id
             LEFT JOIN send_swaps AS ss           -- Send Swap data
                 ON ptx.tx_id = ss.lockup_tx_id
+            LEFT JOIN chain_swaps AS cs          -- Chain Swap data
+                ON ptx.tx_id in (cs.user_lockup_tx_id, cs.claim_tx_id)
             LEFT JOIN payment_tx_data AS rtx     -- Refund tx data
-                ON rtx.tx_id = ss.refund_tx_id
+                ON rtx.tx_id in (ss.refund_tx_id, cs.refund_tx_id)
             WHERE                                -- Filter out refund txs from Payment tx list
                 ptx.tx_id NOT IN (SELECT refund_tx_id FROM send_swaps WHERE refund_tx_id NOT NULL)
                 AND {}
@@ -155,7 +188,16 @@ impl Persister {
         let maybe_send_swap_payer_amount_sat: Option<u64> = row.get(15)?;
         let maybe_send_swap_receiver_amount_sat: Option<u64> = row.get(16)?;
         let maybe_send_swap_state: Option<PaymentState> = row.get(17)?;
-        let maybe_send_swap_refund_tx_amount_sat: Option<u64> = row.get(18)?;
+
+        let maybe_chain_swap_id: Option<String> = row.get(18)?;
+        let maybe_chain_swap_created_at: Option<u32> = row.get(19)?;
+        let maybe_chain_swap_preimage: Option<String> = row.get(20)?;
+        let maybe_chain_swap_refund_tx_id: Option<String> = row.get(21)?;
+        let maybe_chain_swap_payer_amount_sat: Option<u64> = row.get(22)?;
+        let maybe_chain_swap_receiver_amount_sat: Option<u64> = row.get(23)?;
+        let maybe_chain_swap_state: Option<PaymentState> = row.get(24)?;
+
+        let maybe_swap_refund_tx_amount_sat: Option<u64> = row.get(25)?;
 
         let swap = match maybe_receive_swap_id {
             Some(receive_swap_id) => Some(PaymentSwapData {
@@ -168,16 +210,28 @@ impl Persister {
                 refund_tx_amount_sat: None,
                 status: maybe_receive_swap_receiver_state.unwrap_or(PaymentState::Created),
             }),
-            None => maybe_send_swap_id.map(|send_swap_id| PaymentSwapData {
-                swap_id: send_swap_id,
-                created_at: maybe_send_swap_created_at.unwrap_or(utils::now()),
-                preimage: maybe_send_swap_preimage,
-                payer_amount_sat: maybe_send_swap_payer_amount_sat.unwrap_or(0),
-                receiver_amount_sat: maybe_send_swap_receiver_amount_sat.unwrap_or(0),
-                refund_tx_id: maybe_send_swap_refund_tx_id,
-                refund_tx_amount_sat: maybe_send_swap_refund_tx_amount_sat,
-                status: maybe_send_swap_state.unwrap_or(PaymentState::Created),
-            }),
+            None => match maybe_send_swap_id {
+                Some(send_swap_id) => Some(PaymentSwapData {
+                    swap_id: send_swap_id,
+                    created_at: maybe_send_swap_created_at.unwrap_or(utils::now()),
+                    preimage: maybe_send_swap_preimage,
+                    payer_amount_sat: maybe_send_swap_payer_amount_sat.unwrap_or(0),
+                    receiver_amount_sat: maybe_send_swap_receiver_amount_sat.unwrap_or(0),
+                    refund_tx_id: maybe_send_swap_refund_tx_id,
+                    refund_tx_amount_sat: maybe_swap_refund_tx_amount_sat,
+                    status: maybe_send_swap_state.unwrap_or(PaymentState::Created),
+                }),
+                None => maybe_chain_swap_id.map(|chain_swap_id| PaymentSwapData {
+                    swap_id: chain_swap_id,
+                    created_at: maybe_chain_swap_created_at.unwrap_or(utils::now()),
+                    preimage: maybe_chain_swap_preimage,
+                    payer_amount_sat: maybe_chain_swap_payer_amount_sat.unwrap_or(0),
+                    receiver_amount_sat: maybe_chain_swap_receiver_amount_sat.unwrap_or(0),
+                    refund_tx_id: maybe_chain_swap_refund_tx_id,
+                    refund_tx_amount_sat: maybe_swap_refund_tx_amount_sat,
+                    status: maybe_chain_swap_state.unwrap_or(PaymentState::Created),
+                }),
+            },
         };
 
         Ok(Payment::from(tx, swap))

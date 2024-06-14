@@ -60,6 +60,11 @@ class BindingLiquidSdk extends RustOpaque {
       RustLib.instance.api
           .crateBindingsBindingLiquidSdkPrepareReceivePayment(that: this, req: req, hint: hint);
 
+  Future<PrepareSendOnchainResponse> prepareSendOnchainPayment(
+          {required PrepareSendOnchainRequest req, dynamic hint}) =>
+      RustLib.instance.api
+          .crateBindingsBindingLiquidSdkPrepareSendOnchainPayment(that: this, req: req, hint: hint);
+
   Future<PrepareSendResponse> prepareSendPayment({required PrepareSendRequest req, dynamic hint}) =>
       RustLib.instance.api.crateBindingsBindingLiquidSdkPrepareSendPayment(that: this, req: req, hint: hint);
 
@@ -68,6 +73,9 @@ class BindingLiquidSdk extends RustOpaque {
 
   void restore({required RestoreRequest req, dynamic hint}) =>
       RustLib.instance.api.crateBindingsBindingLiquidSdkRestore(that: this, req: req, hint: hint);
+
+  Future<SendPaymentResponse> sendOnchainPayment({required PrepareSendOnchainResponse req, dynamic hint}) =>
+      RustLib.instance.api.crateBindingsBindingLiquidSdkSendOnchainPayment(that: this, req: req, hint: hint);
 
   Future<SendPaymentResponse> sendPayment({required PrepareSendResponse req, dynamic hint}) =>
       RustLib.instance.api.crateBindingsBindingLiquidSdkSendPayment(that: this, req: req, hint: hint);
